@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'quizzes',
+    'games',
     'rest_framework',
 ]
 
