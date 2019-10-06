@@ -10,7 +10,7 @@ from users.models import User
 
 class Game(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    gameName = models.CharField(max_length=50)
+    game_name = models.CharField(max_length=50)
     quiz = models.ForeignKey(Quiz, on_delete=models.PROTECT, related_name="active_game_set")
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="game_hosting_set")
 
