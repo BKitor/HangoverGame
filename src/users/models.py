@@ -9,3 +9,6 @@ class User(models.Model):
     screen_name = models.CharField(max_length=100)
     # email
     # Quizzes[]?
+
+    def __repr__(self):
+        return self.screen_name
