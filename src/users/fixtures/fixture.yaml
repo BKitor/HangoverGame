@@ -1,0 +1,24 @@
+- model: users.user
+  pk: 0a2b7be3-85b8-4e9e-b8a5-73d3b2292654
+  fields:
+    screen_name: User3
+- model: users.user
+  pk: 1a28c231-c5f0-4128-bbd7-f31fa332f469
+  fields:
+    screen_name: User2
+- model: users.user
+  pk: 64782d21-6535-4b8e-b488-5d3088c98661
+  fields:
+    screen_name: User1
+- model: users.user
+  pk: 8149e44f-0aa6-45ae-b4c7-305cace98e70
+  fields:
+    screen_name: User5
+- model: users.user
+  pk: ea309454-ec7b-4578-b14b-11a9dceed06c
+  fields:
+    screen_name: User5
+- model: users.user
+  pk: faae0245-89d5-45da-b83a-93a5855130d3
+  fields:
+    screen_name: User4
