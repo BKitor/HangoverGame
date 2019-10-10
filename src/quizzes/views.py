@@ -39,12 +39,12 @@ class QuizListCreate(generics.ListCreateAPIView):
         # only return a quiz by uuid
         uuid = body.get("uuid")
         if not uuid:
-            return Response(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
-        try: # make sure the requested uuid exists
+        try:  # make sure the requested uuid exists
             quiz = Quiz.objects.get(uuid=uuid)
         except Quiz.DoesNotExist:
-            return Response(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
         return Response(QuizSerializer(quiz).data)
 
@@ -53,7 +53,7 @@ class QuizListCreate(generics.ListCreateAPIView):
 
         # if the request has no body, then return error
         if not body.decode('UTF-8'):
-            return Response(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
         body = json.loads(body)
 
