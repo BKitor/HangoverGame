@@ -7,7 +7,6 @@ from rest_framework.response import Response
 import json
 
 
-
 class QuizListCreate(generics.ListCreateAPIView):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
@@ -17,10 +16,10 @@ class QuizListCreate(generics.ListCreateAPIView):
 
         author = quiz.get("author")
 
-        try: # make sure the requested uuid exists
+        try:  # make sure the requested uuid exists
             author = User.objects.get(uuid=author)
         except User.DoesNotExist:
-            return Response(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
         new_quiz = Quiz(name=quiz.get("name"), author=author)
         new_quiz.save()
@@ -61,16 +60,16 @@ class QuizListCreate(generics.ListCreateAPIView):
         # only get objects by uuid
         uuid = body.get("uuid")
         if not uuid:
-            return Reponse(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
-        try: # make sure the requested uuid exists
+        try:  # make sure the requested uuid exists
             quiz = Quiz.objects.get(uuid=body.get("uuid"))
         except Quiz.DoesNotExist:
-            return Reponse(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
         name = body.get("name")
-        if name: # if a name is included in the request, the update the name
-            quiz.name = name;
+        if name:  # if a name is included in the request, the update the name
+            quiz.name = name
             quiz.save()
 
         # ability to change author?
@@ -78,14 +77,13 @@ class QuizListCreate(generics.ListCreateAPIView):
 
         return Response(QuizSerializer(quiz).data, status=status.HTTP_201_CREATED)
 
-
     def delete(self, request):
         quiz = request.data
 
-        try: # make sure the requested uuid exists
+        try:  # make sure the requested uuid exists
             quiz = Quiz.objects.get(uuid=quiz.get("uuid"))
         except Quiz.DoesNotExist:
-            return Response(None) # should add some kind of error
+            return Response(None)  # should add some kind of error
 
         quiz.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
