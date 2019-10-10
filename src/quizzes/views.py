@@ -1,10 +1,10 @@
 from quizzes.models import Quiz, Question
+from users.models import User
 from quizzes.serializers import QuizSerializer, QuestionSerializer
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-# Create your views here.
 
 
 class QuizListCreate(generics.ListCreateAPIView):
@@ -12,11 +12,11 @@ class QuizListCreate(generics.ListCreateAPIView):
     serializer_class = QuizSerializer
 
     def post(self, request):
-        print(request.data)
         quiz = request.data
-        serializer = QuizSerializer(quiz)
-        print(serializer)
-        return Response(quiz)
+        author = User.objects.get(uuid=quiz.get("author"))
+        new_quiz = Quiz(name=quiz.get("name"), author=author)
+        new_quiz.save()
+        return Response(QuizSerializer(new_quiz).data)
 
     def get(self, request):
         quiz = Quiz.objects.all()
@@ -27,7 +27,11 @@ class QuizListCreate(generics.ListCreateAPIView):
         return Response(None)
 
     def delete(self, request):
-        pass
+        quiz = request.data
+        quiz = Quiz.objects.get(uuid=quiz.get("uuid"))
+        quiz.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class QuestionListCreate(generics.ListCreateAPIView):
