@@ -162,7 +162,7 @@ class QuestionListCreate(generics.ListCreateAPIView):
         except (Question.DoesNotExist, ValidationError):
             return Response("Invalid UUID", status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(QuestionSerializer(quiz).data)
+        return Response(QuestionSerializer(question).data)
 
     def put(self, request):
         body = request.body
