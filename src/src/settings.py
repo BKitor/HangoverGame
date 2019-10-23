@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',
+    'account',
     'quizzes',
     'rest_framework',
 ]
@@ -69,6 +69,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = 'account.User'
 
 WSGI_APPLICATION = 'src.wsgi.application'
 
