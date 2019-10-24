@@ -1,5 +1,5 @@
 from quizzes.models import Quiz, Question
-from users.models import User
+from account.models import User
 from quizzes.serializers import QuizSerializer, QuestionSerializer
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -25,7 +25,7 @@ class QuizListCreate(generics.ListCreateAPIView):
             return Response("Author is a required field", status=status.HTTP_400_BAD_REQUEST)
 
         try:  # make sure the requested uuid exists
-            author = User.objects.get(uuid=author)
+            author = User.objects.get(id=author)
         except (User.DoesNotExist, ValidationError):
             return Response("Author not found", status=status.HTTP_400_BAD_REQUEST)
 
