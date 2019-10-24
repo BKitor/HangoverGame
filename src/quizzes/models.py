@@ -5,6 +5,8 @@ from django.conf import settings
 
 from users.models import User
 
+from users.models import User
+
 # Create your models here.
 
 # to get all associated quizzes - <question>.quiz_set.all()
