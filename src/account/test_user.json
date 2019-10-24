@@ -1,0 +1,14 @@
+{
+    "email": "test@test.test",
+    "username": "test",
+    "date_joined": "2019-10-20T00:00",
+    "last_joined": "2019-10-20T00:00",
+    "is_admin": false,
+    "is_active": true,
+    "is_staff": false,
+    "is_superuser": false,
+    "first_name": "test",
+    "last_name": "test",
+    "password": "test",
+    "last_login": "2019-10-20T00:00"
+}
