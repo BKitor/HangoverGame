@@ -12,23 +12,25 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('quizzes', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Question',
+            name='Game',
             fields=[
                 ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('prompt', models.CharField(max_length=100)),
+                ('game_name', models.CharField(max_length=50)),
+                ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='game_hosting_set', to=settings.AUTH_USER_MODEL)),
+                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='active_game_set', to='quizzes.Quiz')),
             ],
         ),
         migrations.CreateModel(
-            name='Quiz',
+            name='Players',
             fields=[
                 ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100)),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('questions', models.ManyToManyField(to='quizzes.Question')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='player_set', to='games.Game')),
+                ('players', models.ManyToManyField(related_name='player_set', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]
