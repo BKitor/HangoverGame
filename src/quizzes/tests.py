@@ -37,7 +37,8 @@ class QuizTestCase(TestCase):
 
     @property
     def author(self):
-        author, _ = User.objects.get_or_create(email="quiz@test.test", username="TestQuizUser", first_name="Quiz", last_name="Test")
+        author, _ = User.objects.get_or_create(
+            email="quiz@test.test", username="TestQuizUser", first_name="Quiz", last_name="Test")
         return author
 
     def test_quiz_post(self):
@@ -101,3 +102,20 @@ class QuizTestCase(TestCase):
             self.assertEqual(1, 0, "Quiz instance was not deleted")
         except Quiz.DoesNotExist:
             self.assertEqual(1, 1)
+
+
+class QuestionTestCase(TestCase):
+
+    def test_question_post(self):
+        c = Client()
+        req_url = "/api/question"
+        req_body = {
+            "prompt":"This is a test"
+        }
+
+        c.post(req_url, req_body, content_type="application/json")
+        res = c.get(req_url, content_type="application/json" )
+        res.json()
+
+        self.assertEqual(1,0)
+        
