@@ -73,29 +73,35 @@ class QuizTestCase(TestCase):
                 "name": f"test_quiz_{i}",
                 "questions": []
             }
-            self.assertIn(assert_obj, res_json, f"\n\n{assert_obj} not in {res_json}")
+            self.assertIn(assert_obj, res_json,
+                          f"\n\n{assert_obj} not in {res_json}")
 
     def test_quiz_put(self):
         c = Client()
         req_url = "/api/quizzes"
         quiz_map = self.test_quiz_map
 
-        new_quiz, _ = Quiz.objects.get_or_create(name="put_test_quiz", author=self.author)
-        new_question, _ = Question.objects.get_or_create(prompt="test question")
+        new_quiz, _ = Quiz.objects.get_or_create(
+            name="put_test_quiz", author=self.author)
+        new_question, _ = Question.objects.get_or_create(
+            prompt="test question")
 
         quiz_map["uuid"] = str(new_quiz.uuid)
         quiz_map["questions"] = [str(new_question.uuid)]
 
         c.put(req_url, quiz_map, content_type="application/json")
 
-        self.assertEqual(new_quiz.questions.first().uuid, new_question.uuid, "put request didn't add question to quiz")
+        self.assertEqual(new_quiz.questions.first(
+        ).uuid, new_question.uuid, "put request didn't add question to quiz")
 
     def test_quiz_delete(self):
         c = Client()
         req_url = "/api/quizzes"
 
-        new_quiz, _ = Quiz.objects.get_or_create(name="delete_test_quiz", author=self.author)
-        c.delete(req_url, {"uuid": str(new_quiz.uuid)}, content_type="application/json")
+        new_quiz, _ = Quiz.objects.get_or_create(
+            name="delete_test_quiz", author=self.author)
+        c.delete(req_url, {"uuid": str(new_quiz.uuid)},
+                 content_type="application/json")
 
         try:
             Quiz.objects.get(uuid=new_quiz.uuid)
@@ -108,14 +114,35 @@ class QuestionTestCase(TestCase):
 
     def test_question_post(self):
         c = Client()
-        req_url = "/api/question"
+        req_url = "/api/questions"
         req_body = {
-            "prompt":"This is a test"
+            "prompt": "This is a test"
         }
 
-        c.post(req_url, req_body, content_type="application/json")
-        res = c.get(req_url, content_type="application/json" )
-        res.json()
+        res = c.post(req_url, req_body, content_type="application/json")
+        res_dict = res.json()
 
-        self.assertEqual(1,0)
-        
+        db_obj = Question.objects.get(uuid=res_dict["uuid"])
+
+        for key in res_dict:
+            if not key == "uuid":
+                self.assertEqual(res_dict[key], req_body[key])
+        self.assertEqual(db_obj.prompt, req_body["prompt"])
+
+    def test_question_delete(self):
+        c = Client()
+        req_url = "/api/questions"
+        to_be_deleted_prompt = "This shouldn't exist"
+
+        to_be_deleted, _ = Question.objects.get_or_create(
+            prompt=to_be_deleted_prompt)
+
+        req_body = {
+            "uuid": str(to_be_deleted.uuid)
+        }
+
+        c.delete(req_url, req_body, content_type="application/json")
+
+        q_queryset = Question.objects.filter(prompt=to_be_deleted_prompt)
+        for q in q_queryset:
+            self.assertNotEqual(to_be_deleted.uuid, q.uuid)
