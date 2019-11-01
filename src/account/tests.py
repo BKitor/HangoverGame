@@ -63,3 +63,17 @@ class UserTestCase(TestCase):
         new_user = User.objects.get(id=old_user.id)
 
         self.assertNotEqual(old_user.username, new_user.username)
+
+    def test_user_delete(self):
+        c = Client()
+        test_user = self.sample_user
+        req_url = f"/users/{test_user.id}/delete/"
+
+        c.delete(req_url)
+
+        try:
+            new_usr = User.objects.get(id=test_user.id)
+            print(new_usr)
+            self.assertNotEqual(0, 0, "user didn't delete")
+        except User.DoesNotExist:
+            self.assertEqual(0, 0)
