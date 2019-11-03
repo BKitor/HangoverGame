@@ -1,6 +1,7 @@
-from django.shortcuts import render
 from .models import User
 from .serializers import UserSerializer
+from quizzes.serializers import QuizSerializer
+from rest_framework.response import Response
 
 # Create your views here.
 
@@ -9,7 +10,7 @@ from rest_framework.generics import (
     RetrieveAPIView,
     CreateAPIView,
     DestroyAPIView,
-    UpdateAPIView
+    UpdateAPIView,
 )
 
 
@@ -36,3 +37,15 @@ class UserUpdateView(UpdateAPIView):
 class UserDeleteView(DestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class UserQuizzesView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = QuizSerializer
+
+    def get(self, request, pk):
+        user = User.objects.get(id=pk)
+        quizzes = user.getQuizzes()
+        serializer = QuizSerializer(quizzes, many=True)
+
+        return Response(serializer.data)

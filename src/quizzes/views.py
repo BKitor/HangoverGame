@@ -2,7 +2,6 @@ from quizzes.models import Quiz, Question
 from account.models import User
 from quizzes.serializers import QuizSerializer, QuestionSerializer
 from rest_framework import generics, status
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 import json
