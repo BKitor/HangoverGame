@@ -2,6 +2,8 @@ from .models import User
 from .serializers import UserSerializer
 from quizzes.serializers import QuizSerializer
 from rest_framework.response import Response
+from rest_framework import status
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -44,7 +46,10 @@ class UserQuizzesView(RetrieveAPIView):
     serializer_class = QuizSerializer
 
     def get(self, request, pk):
-        user = User.objects.get(id=pk)
+        try:
+            user = User.objects.get(id=pk)
+        except ValidationError:
+            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
         quizzes = user.getQuizzes()
         serializer = QuizSerializer(quizzes, many=True)
 
