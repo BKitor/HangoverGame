@@ -48,7 +48,7 @@ class UserQuizzesView(RetrieveAPIView):
     def get(self, request, pk):
         try:
             user = User.objects.get(id=pk)
-        except ValidationError:
+        except (ValidationError, User.DoesNotExist):
             return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
         quizzes = user.getQuizzes()
         serializer = QuizSerializer(quizzes, many=True)
