@@ -108,3 +108,21 @@ class GameTestCase(TestCase):
             self.assertEqual(1, 0, "game was not deleted")
         except Game.DoesNotExist:
             self.assertEqual(1, 1, "game was deleted")
+
+    def test_add_anon_player_to_game(self):
+        c = Client()
+        req_url = f"/game/{self.sample_game.game_name}"
+        req_body = {
+            "user_id": "anonPlayer",
+            "player_name": "anonPlayer"
+        }
+
+        c.post(req_url, req_body, content_type="application/json")
+
+        self.assertEqual(self.sample_game.players.first(
+        ).player_name, req_body['player_name'])
+
+        res = c.post(req_url, req_body, content_type="application/json")
+        self.assertEqual(res.status_code, 400)
+
+    # def test_delete_anon_player_from_game(self):
