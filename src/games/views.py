@@ -20,7 +20,7 @@ def is_valid_uuid(uuid_to_test):
         return False
 
 
-class GameList(generics.ListAPIView):
+class GameCreateList(generics.ListAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
@@ -54,7 +54,7 @@ class GameList(generics.ListAPIView):
         new_game = Game(game_name=game_name, host=host, quiz=quiz)
         new_game.save()
         new_game.init_game()
-        return Response(GameSerializer(new_game), status=status.HTTP_201_CREATED)
+        return Response(GameSerializer(new_game).data, status=status.HTTP_201_CREATED)
 
 
 class GameDetailView(generics.RetrieveAPIView):
