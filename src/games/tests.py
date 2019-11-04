@@ -100,7 +100,7 @@ class GameTestCase(TestCase):
         c = Client()
         test_game = self.sample_game
         req_url = f"/game/{test_game.game_name}/end_game"
-        
+
         c.delete(req_url)
 
         try:
