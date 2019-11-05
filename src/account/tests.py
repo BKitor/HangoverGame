@@ -77,3 +77,13 @@ class UserTestCase(TestCase):
             self.assertNotEqual(0, 0, "user didn't delete")
         except User.DoesNotExist:
             self.assertEqual(0, 0)
+
+
+    def test_get_user_quizzes(self):
+        c = Client()
+        test_user = self.sample_user
+        test_url = f"/users/{test_user}"
+
+        c.get(test_url)
+
+        self.asserEqual(1,0, "turn this into a proper unit test")
