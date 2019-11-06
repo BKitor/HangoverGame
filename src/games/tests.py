@@ -63,6 +63,12 @@ class GameTestCase(TestCase):
     #     # print(Quiz.objects.get(name="setUpQuiz").questions.all())
 
     @property
+    def sample_anon_player(self):
+        new_player = Player(player_name="sample player", )
+        new_player.save()
+        return new_player
+
+    @property
     def sample_game(self):
         game, _ = Game.objects.get_or_create(
             host=self.sample_user, quiz=self.sample_quiz, game_name="SampleGame")
@@ -125,4 +131,19 @@ class GameTestCase(TestCase):
         res = c.post(req_url, req_body, content_type="application/json")
         self.assertEqual(res.status_code, 400)
 
-    # def test_delete_anon_player_from_game(self):
+    def test_delete_anon_player_from_game(self):
+        c = Client()
+        test_anon_player = self.sample_anon_player
+        test_game = self.sample_game
+        req_url = f"/game/{test_game.game_name}"
+
+        if test_anon_player not in test_game.players.all():
+            test_game.players.add(test_anon_player)
+
+        req_body = {
+            "player_id": f"{test_anon_player.uuid}"
+        }
+
+        c.delete(req_url, req_body, content_type="application/json")
+
+        self.assertNotIn(test_anon_player, test_game.players.all(), "player in game")
