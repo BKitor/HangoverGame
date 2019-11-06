@@ -146,4 +146,40 @@ class GameTestCase(TestCase):
 
         c.delete(req_url, req_body, content_type="application/json")
 
-        self.assertNotIn(test_anon_player, test_game.players.all(), "player in game")
+        self.assertNotIn(test_anon_player,
+                         test_game.players.all(), "player in game")
+
+    def test_navigate_to_next_question(self):
+        c = Client()
+        test_user = self.sample_user
+        test_quiz = Quiz(author=test_user)
+        test_quiz.save()
+
+        for i in range(0, 3):
+            q = Question(prompt=f"Question {i}")
+            q.save()
+            test_quiz.questions.add(q)
+
+        res = c.post(f"/api/games", {
+            "host_uuid": f"{test_user.id}",
+            "quiz_uuid": f"{test_quiz.uuid}",
+            "game_name": "test_change_question"
+        }, content_type="application/json")
+
+        test_game = Game.objects.get(uuid=res.json()['uuid'])
+        req_url = f"/game/{test_game.game_name}/next_question"
+
+        for q in test_quiz.questions.all():
+            self.assertIn(q, test_game.unanswered_questions.all())
+        change_q_req_body = {
+            "user_id": f"{test_game.host.id}"
+        }
+
+        for i in range(0, 3):
+            res = c.put(req_url, change_q_req_body, content_type="application/json")
+            test_game = Game.objects.get(uuid=res.json()['uuid'])
+            
+            self.assertIn(test_game.current_question, test_quiz.questions.all(), "Current question not in quiz")
+
+        res = c.put(req_url, change_q_req_body, content_type="application/json")
+        self.assertIsNone(res.json()['current_question'], "there are remaining questions")
