@@ -84,10 +84,10 @@ class UserTestCase(TestCase):
         test_url = f"/users/{test_user.id}/quizzes/"
 
         quiz = {
-                "name": "test_quiz",
-                "author": test_user.id,
-                "questions": []
-            }
+            "name": "test_quiz",
+            "author": test_user.id,
+            "questions": []
+        }
 
         res = c.post("/api/quizzes", quiz, content_type="application/json")
         self.assertEquals(res.status_code, 201)
