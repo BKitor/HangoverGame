@@ -76,7 +76,7 @@ class QuizListCreate(generics.ListCreateAPIView):
         try:  # make sure the requested uuid exists
             quiz = Quiz.objects.get(uuid=body.get("uuid"))
         except (Quiz.DoesNotExist, ValidationError):
-            return Response("Invalid quiz UUID", status=status.HTTP_400_BAD_REQUEST)
+            return Response("Invalid UUID", status=status.HTTP_400_BAD_REQUEST)
 
         name = body.get("name")
         if name:  # if a name is included in the request, the update the name
@@ -94,7 +94,7 @@ class QuizListCreate(generics.ListCreateAPIView):
                 try:
                     quiz.questions.add(Question.objects.get(uuid=question))
                 except (Question.DoesNotExist, ValidationError):
-                    return Response("Invalid question UUID", status=status.HTTP_400_BAD_REQUEST)
+                    return Response("Invalid UUID", status=status.HTTP_400_BAD_REQUEST)
 
         quiz.save()
         return Response(QuizSerializer(quiz).data, status=status.HTTP_201_CREATED)

@@ -1,5 +1,3 @@
-
-
 from django.urls import path
 
 from.views import (
@@ -7,7 +5,8 @@ from.views import (
     UserDetailView,
     UserCreateView,
     UserUpdateView,
-    UserDeleteView
+    UserDeleteView,
+    UserQuizzesView
 )
 
 urlpatterns = [
@@ -15,5 +14,6 @@ urlpatterns = [
     path('create/', UserCreateView.as_view()),
     path('<pk>', UserDetailView.as_view()),
     path('<pk>/update/', UserUpdateView.as_view()),
-    path('<pk>/delete/', UserDeleteView.as_view())
+    path('<pk>/delete/', UserDeleteView.as_view()),
+    path('<pk>/quizzes/', UserQuizzesView.as_view())
 ]
