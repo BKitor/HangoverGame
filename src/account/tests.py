@@ -78,12 +78,21 @@ class UserTestCase(TestCase):
         except User.DoesNotExist:
             self.assertEqual(0, 0)
 
-
     def test_get_user_quizzes(self):
         c = Client()
         test_user = self.sample_user
-        test_url = f"/users/{test_user}"
+        test_url = f"/users/{test_user.id}/quizzes/"
 
-        c.get(test_url)
+        quiz = {
+                "name": "test_quiz",
+                "author": test_user.id,
+                "questions": []
+            }
 
-        self.asserEqual(1,0, "turn this into a proper unit test")
+        res = c.post("/api/quizzes", quiz, content_type="application/json")
+        self.assertEquals(res.status_code, 201)
+
+        quizzes = c.get(test_url).json()
+
+        self.assertEqual(len(quizzes), 1)
+        self.assertEqual(res.json(), quizzes[0])
