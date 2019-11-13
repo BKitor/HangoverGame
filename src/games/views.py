@@ -2,6 +2,7 @@ import json
 import uuid
 
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -135,6 +136,43 @@ class GameDeleteView(generics.DestroyAPIView):
 class PlayersListCreate(generics.ListCreateAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayersSerializer
+
+
+class PlayerDetailView(generics.RetrieveAPIView):
+    queryset = Player.objects.all()
+    serializer_class = PlayersSerializer
+
+    def get(self, request, pk):
+        try:
+            player = Player.objects.get(uuid=pk)
+        except (ValidationError, User.DoesNotExist):
+            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = PlayersSerializer(player)
+        return Response(serializer.data)
+
+
+class PlayerUpdateView(generics.UpdateAPIView):
+    queryset = Player.objects.all()
+    serializer_class = PlayersSerializer
+
+    def put(self, request, pk):
+        try:
+            player = Player.objects.get(uuid=pk)
+        except (ValidationError, Player.DoesNotExist):
+            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
+
+        body = json.loads(request.body)
+        new_name = body.get("player_name")
+
+        if not new_name:
+            return Response("player_name is a required field", status=status.HTTP_400_BAD_REQUEST)
+
+        player.player_name = new_name
+        player.save()
+
+        serializer = PlayersSerializer(player)
+        return Response(serializer.data)
 
 
 class NextQuestion(generics.GenericAPIView):
