@@ -161,8 +161,28 @@ class NextQuestion(generics.GenericAPIView):
         if not is_valid_uuid(user_id):
             return Response("Malformed user_id", status=status.HTTP_400_BAD_REQUEST)
 
-        if user_id != game.host.id:
+        if user_id != str(game.host.id):
             return Response("Not authorize to update game", status=status.HTTP_403_FORBIDDEN)
 
-        game.next_question()
-        return Response(GameSerializer(game), status=status.HTTP_202_ACCEPTED)
+        winner = body.get("winner")
+        if winner:
+            try:
+                winner = Player.objects.get(uuid=winner)
+            except (ValueError, Player.DoesNotExist):
+                return Response("Invalid winner ID", status=status.HTTP_400_BAD_REQUEST)
+
+        if winner not in game.players.all():
+            return Response("Winner must be in the game", status=status.HTTP_400_BAD_REQUEST)
+
+        loser = body.get("loser")
+        if loser:
+            try:
+                loser = Player.objects.get(uuid=loser)
+            except (ValueError, Player.DoesNotExist):
+                return Response("Invalid loser ID", status=status.HTTP_400_BAD_REQUEST)
+
+        if loser not in game.players.all():
+            return Response("Loser must be in the game", status=status.HTTP_400_BAD_REQUEST)
+
+        game.next_question(winner, loser)
+        return Response(GameSerializer(game).data, status=status.HTTP_202_ACCEPTED)

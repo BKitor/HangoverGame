@@ -12,6 +12,7 @@ class Player(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     player_name = models.CharField(editable=True, max_length=20)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    score = models.IntegerField(default=0)
 
 
 class Game(models.Model):
@@ -32,7 +33,7 @@ class Game(models.Model):
     # moves current question to answered
     # if available questions, choses next one
     # else sets current to None
-    def next_question(self):
+    def next_question(self, winner=None, loser=None):
         if self.current_question:
             self.answered_questions.add(self.current_question)
 
@@ -42,3 +43,13 @@ class Game(models.Model):
             self.current_question = next_q
         else:
             self.current_question = None
+
+        #  Check if winner and loser exists in case there is some question type
+        #  that does not have both
+        if winner:
+            winner.score += 1
+            winner.save()
+
+        if loser:
+            loser.score -= 1
+            loser.save()

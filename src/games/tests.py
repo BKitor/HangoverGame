@@ -108,3 +108,42 @@ class GameTestCase(TestCase):
             self.assertEqual(1, 0, "game was not deleted")
         except Game.DoesNotExist:
             self.assertEqual(1, 1, "game was deleted")
+
+    def test_game_next_question(self):
+        c = Client()
+        test_game = self.sample_game
+
+        player1 = {
+            "player_name": "player1",
+            "user_id": " "
+        }
+
+        player2 = {
+            "player_name": "player2",
+            "user_id": " "
+        }
+
+        c.post(f"/game/{test_game.game_name}", player1, content_type="application/json").json()
+        c.post(f"/game/{test_game.game_name}", player2, content_type="application/json").json()
+
+        self.assertEquals(len(test_game.players.all()), 2)
+
+        player1 = Player.objects.get(player_name='player1')
+        player2 = Player.objects.get(player_name='player2')
+
+        self.assertEquals(player1.score, 0)
+        self.assertEquals(player2.score, 0)
+
+        body = {
+            "user_id": str(test_game.host.id),
+            "winner": str(player1.uuid),
+            "loser": str(player2.uuid)
+        }
+
+        c.put(f"/game/{test_game.game_name}/next_question", body, content_type="application/json").json()
+
+        player1 = Player.objects.get(player_name='player1')
+        player2 = Player.objects.get(player_name='player2')
+
+        self.assertEquals(player1.score, 1)
+        self.assertEquals(player2.score, -1)
