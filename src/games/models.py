@@ -22,7 +22,7 @@ class Game(models.Model):
     players = models.ManyToManyField(Player)
     unanswered_questions = models.ManyToManyField(Question, related_name="unanswered_questions")
     answered_questions = models.ManyToManyField(Question, related_name="answered_questions")
-    current_question = None
+    current_question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
 
     def init_game(self):
         for question in self.quiz.questions.all():
