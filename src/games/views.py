@@ -20,6 +20,19 @@ def is_valid_uuid(uuid_to_test):
         return False
 
 
+class PlayerList(generics.RetrieveAPIView):
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    lookup_field = "game_name"
+
+    def get(self, request, **kwargs):
+        game = self.get_object()
+        player_arr = []
+        for player in game.players.all():
+            player_arr.append(player.player_name)
+        return Response(player_arr, status=status.HTTP_200_OK)
+
+
 class GameCreateList(generics.ListAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
