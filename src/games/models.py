@@ -40,5 +40,6 @@ class Game(models.Model):
             next_q = self.unanswered_questions.first()
             self.unanswered_questions.remove(next_q)
             self.current_question = next_q
+            self.save()
         else:
             self.current_question = None
