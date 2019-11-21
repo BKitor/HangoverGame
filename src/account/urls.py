@@ -13,6 +13,7 @@ urlpatterns = [
     path('', UserListView.as_view()),
     path('create/', UserCreateView.as_view()),
     path('<pk>', UserDetailView.as_view()),
+    path('<username>', UserDetailView.as_view()),
     path('<pk>/update/', UserUpdateView.as_view()),
     path('<pk>/delete/', UserDeleteView.as_view()),
     path('<pk>/quizzes/', UserQuizzesView.as_view())

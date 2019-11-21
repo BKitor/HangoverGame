@@ -25,6 +25,21 @@ class UserDetailView(RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(id=pk)
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        except (ValidationError, User.DoesNotExist):
+            pass
+
+        try:
+            user = User.objects.get(username=pk)
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        except (ValidationError, User.DoesNotExist):
+            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserCreateView(CreateAPIView):
     queryset = User.objects.all()
