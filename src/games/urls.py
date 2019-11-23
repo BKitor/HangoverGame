@@ -8,5 +8,6 @@ urlpatterns = [
     path('api/players/<pk>/update/', views.PlayerUpdateView.as_view()),
     path('game/<game_name>', views.GameDetailView.as_view()),
     path('game/<game_name>/end_game', views.GameDeleteView.as_view()),
-    path('game/<game_name>/next_question', views.NextQuestion.as_view())
+    path('game/<game_name>/next_question', views.NextQuestion.as_view()),
+    path('game/<game_name>/players', views.PlayerList.as_view()),
 ]

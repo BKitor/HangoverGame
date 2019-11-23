@@ -128,3 +128,25 @@ class GameTestCase(TestCase):
 
         self.assertNotEqual(old_player.player_name, new_player.player_name)
         self.assertEquals(new_player.player_name, "updated username")
+
+    def test_player_list(self):
+        c = Client()
+        sample_game = self.sample_game
+
+        test_player_names = [
+            'test_name_1',
+            'test_name_2',
+            'test_name_3'
+        ]
+
+        req_body = {
+            'user_id': 'anon',
+            'player_name': None,
+        }
+        for i in range(3):
+            req_body['player_name'] = test_player_names[i]
+            res = c.post(f'/game/{sample_game.game_name}', req_body, 'application/json')
+
+        res = c.get(f'/game/{sample_game.game_name}/players')
+        for name in res.json():
+            self.assertIn(name, test_player_names)
