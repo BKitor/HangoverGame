@@ -110,7 +110,7 @@ class GameDetailView(generics.RetrieveAPIView):
         new_player.save()
         game.players.add(new_player)
         game.save()
-        return Response(GameSerializer(game).data, status=status.HTTP_201_CREATED)
+        return Response(PlayersSerializer(new_player).data, status=status.HTTP_201_CREATED)
 
     # remove a player from a game
     # takes player uuid, and game as kwargs
