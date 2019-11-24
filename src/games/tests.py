@@ -117,7 +117,7 @@ class GameTestCase(TestCase):
         }
 
         res = c.post(f"/game/{test_game.game_name}", old_player, content_type="application/json")
-        old_player = Player.objects.get(uuid=res.json()['players'][0])
+        old_player = Player.objects.get(uuid=res.json()['uuid'])
 
         update_player = {
             "player_name": "updated username"

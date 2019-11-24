@@ -215,7 +215,6 @@ class NextQuestion(generics.GenericAPIView):
         if user_id != str(game.host.id):
             return Response("Not authorize to update game", status=status.HTTP_403_FORBIDDEN)
 
-        print(game.unanswered_questions)
         if not game.unanswered_questions.all() and not game.current_question:
             return Response("No more questions", status=status.HTTP_400_BAD_REQUEST)
 
