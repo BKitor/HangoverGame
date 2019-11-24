@@ -212,8 +212,12 @@ class NextQuestion(generics.GenericAPIView):
         if not is_valid_uuid(user_id):
             return Response("Malformed user_id", status=status.HTTP_400_BAD_REQUEST)
 
-        if user_id != game.host.id:
+        if user_id != str(game.host.id):
             return Response("Not authorize to update game", status=status.HTTP_403_FORBIDDEN)
 
+        print(game.unanswered_questions)
+        if not game.unanswered_questions.all() and not game.current_question:
+            return Response("No more questions", status=status.HTTP_400_BAD_REQUEST)
+
         game.next_question()
-        return Response(GameSerializer(game), status=status.HTTP_202_ACCEPTED)
+        return Response(GameSerializer(game).data, status=status.HTTP_202_ACCEPTED)

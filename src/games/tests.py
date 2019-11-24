@@ -123,7 +123,7 @@ class GameTestCase(TestCase):
             "player_name": "updated username"
         }
 
-        res = c.put(f"/api/players/{old_player.uuid}/update/", update_player, content_type="application/json")
+        res = c.put(f"/api/players/{old_player.uuid}/update", update_player, content_type="application/json")
         new_player = Player.objects.get(uuid=res.json()['uuid'])
 
         self.assertNotEqual(old_player.player_name, new_player.player_name)
