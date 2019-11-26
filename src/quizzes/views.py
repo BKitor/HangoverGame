@@ -221,3 +221,17 @@ class QuestionListCreate(generics.ListCreateAPIView):
 
         question.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class QuestionDetailView(generics.RetrieveAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+    def get(self, request, pk):
+
+        try:
+            question = Question.objects.get(uuid=pk)
+        except (ValidationError, Question.DoesNotExist):
+            return Response("Invalid question ID", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(QuestionSerializer(question).data)
