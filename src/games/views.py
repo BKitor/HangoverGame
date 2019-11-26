@@ -213,8 +213,8 @@ class NextQuestion(generics.GenericAPIView):
             return Response("Malformed user_id", status=status.HTTP_400_BAD_REQUEST)
 
         if user_id != str(game.host.id):
-            #print("user_id:", user_id, type(user_id))
-            #print("game.host.id:", game.host.id, type(game.host.id))
+            # print("user_id:", user_id, type(user_id))
+            # print("game.host.id:", game.host.id, type(game.host.id))
             return Response("Not authorize to update game", status=status.HTTP_403_FORBIDDEN)
 
         game.next_question()
