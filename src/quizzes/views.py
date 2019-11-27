@@ -120,6 +120,20 @@ class QuizListCreate(generics.ListCreateAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class QuizDetailView(generics.RetrieveAPIView):
+    queryset = Quiz.objects.all()
+    serializer_class = QuizSerializer
+
+    def get(self, request, pk):
+
+        try:
+            quiz = Quiz.objects.get(uuid=pk)
+        except (ValidationError, Quiz.DoesNotExist):
+            return Response("Invalid quiz ID", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(QuizSerializer(quiz).data)
+
+
 class QuestionListCreate(generics.ListCreateAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
@@ -209,6 +223,15 @@ class QuestionListCreate(generics.ListCreateAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class QuestionView(generics.RetrieveAPIView):
+class QuestionDetailView(generics.RetrieveAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
+    def get(self, request, pk):
+
+        try:
+            question = Question.objects.get(uuid=pk)
+        except (ValidationError, Question.DoesNotExist):
+            return Response("Invalid question ID", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(QuestionSerializer(question).data)
