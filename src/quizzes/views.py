@@ -207,3 +207,8 @@ class QuestionListCreate(generics.ListCreateAPIView):
 
         question.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class QuestionView(generics.RetrieveAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
