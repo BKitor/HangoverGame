@@ -117,13 +117,13 @@ class GameTestCase(TestCase):
         }
 
         res = c.post(f"/game/{test_game.game_name}", old_player, content_type="application/json")
-        old_player = Player.objects.get(uuid=res.json()['players'][0])
+        old_player = Player.objects.get(uuid=res.json()['uuid'])
 
         update_player = {
             "player_name": "updated username"
         }
 
-        res = c.put(f"/api/players/{old_player.uuid}/update/", update_player, content_type="application/json")
+        res = c.put(f"/api/players/{old_player.uuid}/update", update_player, content_type="application/json")
         new_player = Player.objects.get(uuid=res.json()['uuid'])
 
         self.assertNotEqual(old_player.player_name, new_player.player_name)

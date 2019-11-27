@@ -111,7 +111,7 @@ class GameDetailView(generics.RetrieveAPIView):
         new_player.save()
         game.players.add(new_player)
         game.save()
-        return Response(GameSerializer(game).data, status=status.HTTP_201_CREATED)
+        return Response(PlayersSerializer(new_player).data, status=status.HTTP_201_CREATED)
 
     # remove a player from a game
     # takes player uuid, and game as kwargs
@@ -213,9 +213,10 @@ class NextQuestion(generics.GenericAPIView):
             return Response("Malformed user_id", status=status.HTTP_400_BAD_REQUEST)
 
         if user_id != str(game.host.id):
-            # print("user_id:", user_id, type(user_id))
-            # print("game.host.id:", game.host.id, type(game.host.id))
             return Response("Not authorize to update game", status=status.HTTP_403_FORBIDDEN)
+
+        if not game.unanswered_questions.all() and not game.current_question:
+            return Response("No more questions", status=status.HTTP_400_BAD_REQUEST)
 
         game.next_question()
         return Response(GameSerializer(game).data, status=status.HTTP_202_ACCEPTED)

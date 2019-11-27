@@ -42,3 +42,5 @@ class Game(models.Model):
             self.current_question = next_q
         else:
             self.current_question = None
+
+        self.save()

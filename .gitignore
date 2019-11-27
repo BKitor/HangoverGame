@@ -3,3 +3,5 @@
 .venv
 src/db.sqlite3
 *.pyc
+src/serve.sh
+src/games/test_game.json
