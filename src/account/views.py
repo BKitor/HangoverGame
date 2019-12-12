@@ -25,20 +25,23 @@ class UserDetailView(RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def get(self, request, pk):
-        try:
-            user = User.objects.get(id=pk)
-            serializer = UserSerializer(user)
-            return Response(serializer.data)
-        except (ValidationError, User.DoesNotExist):
-            pass
+    def get(self, request, pk=None, username=None):
+        if pk is not None:
 
-        try:
-            user = User.objects.get(username=pk)
-            serializer = UserSerializer(user)
-            return Response(serializer.data)
-        except (ValidationError, User.DoesNotExist):
-            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = User.objects.get(id=pk)
+                serializer = UserSerializer(user)
+                return Response(serializer.data)
+            except (ValidationError, User.DoesNotExist):
+                return Response(f"{pk} is not a valid usser ID", status=status.HTTP_404_NOT_FOUND)
+
+        if username is not None:
+            try:
+                user = User.objects.get(username=username)
+                serializer = UserSerializer(user)
+                return Response(serializer.data)
+            except (ValidationError, User.DoesNotExist):
+                return Response(f"User {username} doesn't exist", status=status.HTTP_404_NOT_FOUND)
 
 
 class UserCreateView(CreateAPIView):
