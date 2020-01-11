@@ -137,7 +137,7 @@ class GameDetailView(generics.RetrieveAPIView):
             return Response("Provided id is not associated with this game", status=status.HTTP_404_NOT_FOUND)
 
         player.delete()
-        return Response(f"{player.player_name} deleted", status=status.HTTP_204_NO_CONTENT)
+        return Response(f"{player.player_name} deleted", status=status.HTTP_202_ACCEPTED)
 
 
 class GameDeleteView(generics.DestroyAPIView):
