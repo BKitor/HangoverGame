@@ -1,3 +1,5 @@
+from random import random
+
 from django.test import TestCase, Client
 from account.models import User
 from games.models import Player
@@ -45,21 +47,15 @@ class PlayerTestCase(TestCase):
 
 
 class GameTestCase(TestCase):
-
-    def setUp(self):
-        q1 = Question.objects.create(prompt="Question 1")
-        q2 = Question.objects.create(prompt="Question 2")
-        q3 = Question.objects.create(prompt="Question 3")
-
-        Q1 = Quiz.objects.create(author=self.sample_user, name="setUpQuiz")
-
-        Q1.questions.add(q1)
-        Q1.questions.add(q2)
-        Q1.questions.add(q3)
-
     # def tearDown(self):
     #     # print(self.sample_quiz.questions.all())
     #     # print(Quiz.objects.get(name="setUpQuiz").questions.all())
+
+    @property
+    def sample_player(self):
+        p = Player.objects.create(player_name=f"test_player-{random()}")
+        p.save()
+        return p
 
     @property
     def sample_game(self):
@@ -69,13 +65,15 @@ class GameTestCase(TestCase):
 
     @property
     def sample_user(self):
-        user, _ = User.objects.get_or_create(username="test_username")
+        user, _ = User.objects.get_or_create(username=f"test_username-{random()}")
         return user
 
     @property
     def sample_quiz(self):
         user = self.sample_user
+        question = Question.objects.create(prompt="test_question_prompt")
         quiz, _ = Quiz.objects.get_or_create(name="test_quiz", author=user)
+        quiz.questions.set([question])
         return quiz
 
     def test_game_create(self):
@@ -95,18 +93,15 @@ class GameTestCase(TestCase):
         self.assertEqual(new_game.game_name, req_body['game_name'])
         self.assertEqual(str(new_game.host.id), req_body['host_uuid'])
 
-    def test_game_delete(self):
+    def test_game_archive(self):
         c = Client()
         test_game = self.sample_game
         req_url = f"/game/{test_game.game_name}/end_game"
 
         c.delete(req_url)
 
-        try:
-            Game.objects.get(uuid=test_game.uuid)
-            self.assertEqual(1, 0, "game was not deleted")
-        except Game.DoesNotExist:
-            self.assertEqual(1, 1, "game was deleted")
+        g = Game.objects.get(uuid=test_game.uuid)
+        self.assertEqual(g.archived, True)
 
     def test_change_player_name(self):
         c = Client()
@@ -150,3 +145,25 @@ class GameTestCase(TestCase):
         res = c.get(f'/game/{sample_game.game_name}/players')
         for name in res.json():
             self.assertIn(name, test_player_names)
+
+    def test_pick_winner_loser(self):
+        c = Client()
+        sample_game = self.sample_game
+        sample_game.init_game()
+        p1 = self.sample_player
+        p2 = self.sample_player
+        sample_game.players.set([p1, p2])
+        sample_game.next_question()
+        sample_game.refresh_from_db()
+
+        req_url = f'/game/{sample_game.game_name}/pick_winner_loser'
+        req_body = {
+            'winner': str(p1.uuid),
+            'loser': str(p2.uuid),
+            'question': str(sample_game.current_question.uuid)
+        }
+
+        res = c.post(req_url, req_body, content_type='application/json')
+
+        self.assertEqual(res.json()['winner'], str(p1.uuid))
+        self.assertEqual(res.json()['loser'], str(p2.uuid))

@@ -7,9 +7,9 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from account.models import User
-from games.models import Player, Game
-from games.serializer import GameSerializer, PlayersSerializer
-from quizzes.models import Quiz
+from games.models import Player, Game, AnsweredQuestion
+from games.serializer import GameSerializer, PlayersSerializer, AnsweredQuestionSerializer
+from quizzes.models import Quiz, Question
 # Create your views here.
 
 
@@ -21,17 +21,52 @@ def is_valid_uuid(uuid_to_test):
         return False
 
 
-class PlayerList(generics.RetrieveAPIView):
-    queryset = Game.objects.all()
+class AbsractPlayerClass:
+    queryset = Player.objects.all()
+    serializer_class = PlayersSerializer
+
+
+class AbstractActiveGameClass:
+    queryset = Game.objects.all().filter(archived=False)
     serializer_class = GameSerializer
     lookup_field = "game_name"
 
-    def get(self, request, **kwargs):
-        game = self.get_object()
-        player_arr = []
-        for player in game.players.all():
-            player_arr.append(player.player_name)
-        return Response(player_arr, status=status.HTTP_200_OK)
+
+class PlayersListCreate(AbsractPlayerClass, generics.ListCreateAPIView):
+    pass
+
+
+class PlayerDetailView(AbsractPlayerClass, generics.RetrieveAPIView):
+
+    def get(self, request, pk):
+        try:
+            player = Player.objects.get(uuid=pk)
+        except (ValidationError, User.DoesNotExist):
+            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = PlayersSerializer(player)
+        return Response(serializer.data)
+
+
+class PlayerUpdateView(AbsractPlayerClass, generics.UpdateAPIView):
+
+    def put(self, request, pk):
+        try:
+            player = Player.objects.get(uuid=pk)
+        except (ValidationError, Player.DoesNotExist):
+            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
+
+        body = json.loads(request.body)
+        new_name = body.get("player_name")
+
+        if not new_name:
+            return Response("player_name is a required field", status=status.HTTP_400_BAD_REQUEST)
+
+        player.player_name = new_name
+        player.save()
+
+        serializer = PlayersSerializer(player)
+        return Response(serializer.data)
 
 
 class GameCreateList(generics.ListAPIView):
@@ -71,11 +106,16 @@ class GameCreateList(generics.ListAPIView):
         return Response(GameSerializer(new_game).data, status=status.HTTP_201_CREATED)
 
 
-class GameDetailView(generics.RetrieveAPIView):
-    queryset = Game.objects.all()
-    serializer_class = GameSerializer
-    lookup_field = "game_name"
+class GamePlayerList(AbstractActiveGameClass, generics.RetrieveAPIView):
+    def get(self, request, **kwargs):
+        game = self.get_object()
+        player_arr = []
+        for player in game.players.all():
+            player_arr.append(player.player_name)
+        return Response(player_arr, status=status.HTTP_200_OK)
 
+
+class GameDetailView(AbstractActiveGameClass, generics.RetrieveAPIView):
     # post to /game/<game_name> with player info
     # body of post has player_name, user_id(optional), and game_name in kwargs
     # returns updated game info, or 404
@@ -140,58 +180,16 @@ class GameDetailView(generics.RetrieveAPIView):
         return Response(f"{player.player_name} deleted", status=status.HTTP_202_ACCEPTED)
 
 
-class GameDeleteView(generics.DestroyAPIView):
-    lookup_field = "game_name"
-    queryset = Game.objects.all()
-    serializer_class = GameSerializer
+class GameArchiveView(AbstractActiveGameClass, generics.DestroyAPIView):
+
+    def delete(self, request, **kwargs):
+        game = self.get_object()
+        game.archived = True
+        game.save()
+        return Response(f"{game.game_name} ended", status=status.HTTP_202_ACCEPTED)
 
 
-class PlayersListCreate(generics.ListCreateAPIView):
-    queryset = Player.objects.all()
-    serializer_class = PlayersSerializer
-
-
-class PlayerDetailView(generics.RetrieveAPIView):
-    queryset = Player.objects.all()
-    serializer_class = PlayersSerializer
-
-    def get(self, request, pk):
-        try:
-            player = Player.objects.get(uuid=pk)
-        except (ValidationError, User.DoesNotExist):
-            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = PlayersSerializer(player)
-        return Response(serializer.data)
-
-
-class PlayerUpdateView(generics.UpdateAPIView):
-    queryset = Player.objects.all()
-    serializer_class = PlayersSerializer
-
-    def put(self, request, pk):
-        try:
-            player = Player.objects.get(uuid=pk)
-        except (ValidationError, Player.DoesNotExist):
-            return Response("Invalid user ID", status=status.HTTP_400_BAD_REQUEST)
-
-        body = json.loads(request.body)
-        new_name = body.get("player_name")
-
-        if not new_name:
-            return Response("player_name is a required field", status=status.HTTP_400_BAD_REQUEST)
-
-        player.player_name = new_name
-        player.save()
-
-        serializer = PlayersSerializer(player)
-        return Response(serializer.data)
-
-
-class NextQuestion(generics.GenericAPIView):
-    queryset = Game.objects.all()
-    serializer_class = GameSerializer
-    lookup_field = "game_name"
+class GameNextQuestion(AbstractActiveGameClass, generics.GenericAPIView):
 
     # Update the game to the next question
     # takes game name in kwargs and user_id
@@ -220,3 +218,30 @@ class NextQuestion(generics.GenericAPIView):
 
         game.next_question()
         return Response(GameSerializer(game).data, status=status.HTTP_202_ACCEPTED)
+
+
+class GamePickWinnerLoser(AbstractActiveGameClass, generics.GenericAPIView):
+    serializer_class = AnsweredQuestionSerializer
+
+    def post(self, request, **kwargs):
+        game = self.get_object()
+        body = request.body
+
+        if not body.decode('UTF-8'):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        body = json.loads(body)
+
+        if 'winner' not in body:
+            return Response("Bad Request, missing json field: winner", status=status.HTTP_400_BAD_REQUEST)
+        elif 'loser' not in body:
+            return Response("Bad Request, missing json field: loser", status=status.HTTP_400_BAD_REQUEST)
+        elif 'question' not in body:
+            return Response("Bad Request, missing json field: question", status=status.HTTP_400_BAD_REQUEST)
+
+        winner = get_object_or_404(Player, uuid=body['winner'])
+        loser = get_object_or_404(Player, uuid=body['loser'])
+        question = get_object_or_404(Question, uuid=body['question'])
+
+        a = AnsweredQuestion.objects.create(game=game, winner=winner, loser=loser, question=question)
+        return Response(AnsweredQuestionSerializer(a).data, status=status.HTTP_202_ACCEPTED)

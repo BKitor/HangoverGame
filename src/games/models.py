@@ -23,6 +23,7 @@ class Game(models.Model):
     unanswered_questions = models.ManyToManyField(Question, related_name="unanswered_questions")
     answered_questions = models.ManyToManyField(Question, related_name="answered_questions")
     current_question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
+    archived = models.BooleanField(default=False)
 
     def init_game(self):
         for question in self.quiz.questions.all():
@@ -44,3 +45,12 @@ class Game(models.Model):
             self.current_question = None
 
         self.save()
+
+
+class AnsweredQuestion(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    question = models.ForeignKey(Question, models.PROTECT)
+    game = models.ForeignKey(Game, models.PROTECT)
+    winner = models.ForeignKey(Player, models.PROTECT, related_name="questions_won")
+    loser = models.ForeignKey(Player, models.PROTECT, related_name="questions_lost")
+
