@@ -167,3 +167,6 @@ class GameTestCase(TestCase):
 
         self.assertEqual(res.json()['winner'], str(p1.uuid))
         self.assertEqual(res.json()['loser'], str(p2.uuid))
+
+        self.assertEqual(Player.objects.get(uuid=res.json()['winner']).score, 1)
+        self.assertEqual(Player.objects.get(uuid=res.json()['loser']).score, -1)
