@@ -12,6 +12,14 @@ class Player(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     player_name = models.CharField(editable=True, max_length=20)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    score = models.IntegerField(default=0)
+
+    # update_score(1) to increment
+    # update_score(-1) to decrement
+    def update_score(self, change):
+        if abs(change) == 1:
+            self.score += change
+            self.save()
 
 
 class Game(models.Model):
@@ -53,4 +61,3 @@ class AnsweredQuestion(models.Model):
     game = models.ForeignKey(Game, models.PROTECT)
     winner = models.ForeignKey(Player, models.PROTECT, related_name="questions_won")
     loser = models.ForeignKey(Player, models.PROTECT, related_name="questions_lost")
-

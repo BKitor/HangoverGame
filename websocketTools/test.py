@@ -5,12 +5,11 @@ import asyncio
 
 async def test_player():
 
-    async with websockets.client.connect("ws://192.168.1.30:8000/ws/game/g/player") as ws_player, websockets.client.connect("ws://192.168.1.30:8000/ws/game/g/host") as ws_host:
+    async with websockets.client.connect("ws://localhost:8000/ws/game/g/player") as ws_player, websockets.client.connect("ws://localhost:8000/ws/game/g/host") as ws_host:
 
         await ws_player.send(json.dumps({"type": "game.submit_answer"}))
         print("h" + await ws_host.recv())
         print("p" + await ws_player.recv())
-
         await ws_host.send(json.dumps({"type": "game.lock_question"}))
         print("h" + await ws_host.recv())
         print("p" + await ws_player.recv())

@@ -240,7 +240,11 @@ class GamePickWinnerLoser(AbstractActiveGameClass, generics.GenericAPIView):
             return Response("Bad Request, missing json field: question", status=status.HTTP_400_BAD_REQUEST)
 
         winner = get_object_or_404(Player, uuid=body['winner'])
+        winner.update_score(1)
+
         loser = get_object_or_404(Player, uuid=body['loser'])
+        loser.update_score(-1)
+
         question = get_object_or_404(Question, uuid=body['question'])
 
         a = AnsweredQuestion.objects.create(game=game, winner=winner, loser=loser, question=question)
