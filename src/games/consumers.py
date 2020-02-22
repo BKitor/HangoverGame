@@ -9,11 +9,12 @@ class GameJsonWebsocketConsumer(JsonWebsocketConsumer):
         super().__init__(*args, **kwargs)
         self.game_name = self.scope['url_route']['kwargs']['game_name']
 
-    # gaurentees the subcalles have certain methods at 'compile time'
+    # guarantees the subcalles have certain methods at 'compile time'
     def __init_subclass__(cls, *args, **kwargs):
         super().__init_subclass__(*args, **kwargs)
         assert hasattr(cls, 'game_submit_answer')
         assert hasattr(cls, 'game_lock_question')
+        assert hasattr(cls, 'game_unlock_question')
         assert hasattr(cls, 'game_change_question')
         assert hasattr(cls, 'game_question_changed')
         assert hasattr(cls, 'game_pick_winner_loser')
@@ -26,14 +27,16 @@ class GameJsonWebsocketConsumer(JsonWebsocketConsumer):
         self.game_name = self.scope['url_route']['kwargs']['game_name']
         self.game_group_name = f"game_{self.game_name}"
 
-        async_to_sync(self.channel_layer.group_add)(self.game_group_name, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(
+            self.game_group_name, self.channel_name)
 
         self.accept()
 
     def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(self.game_group_name, self.channel_name)
+        async_to_sync(self.channel_layer.group_discard)(
+            self.game_group_name, self.channel_name)
 
-    # recieves a message and sends it to the group_channel_layer
+    # receives a message and sends it to the group_channel_layer
     def receive_json(self, content):
 
         # Receives a json object, commands include: next_questing, lock_question, chose_winner_loser
@@ -43,7 +46,8 @@ class GameJsonWebsocketConsumer(JsonWebsocketConsumer):
 
         if content['type'] not in self.possible_commands:
             # throw error
-            self.send_json(content={"error": f"{content['type']} is not a viable type"})
+            self.send_json(
+                content={"error": f"{content['type']} is not a viable type"})
             return
 
         if 'payload' not in content:
@@ -65,25 +69,31 @@ class HostConsumer(GameJsonWebsocketConsumer):
         self.possible_commands = ['game.change_question',
                                   'game.lock_question',
                                   'game.pick_winner_loser',
-                                  'game.start_game']
+                                  'game.start_game',
+                                  'game.unlock_question']
         self.game_model = Game.objects.get(game_name=self.game_name)
         self.game_model.question_locked = False
-        self.game_model.game_over = False
 
     def game_lock_question(self, event):
-        self.game_model.question_locked = not self.game_model.question_locked
-        self.send_json({'type': 'sucsess', 'payload': 'question locked'})
+        self.game_model.question_locked = True
+        self.send_json({'type': 'success', 'payload': {
+                       'message': 'question locked'}})
+
+    def game_unlock_question(self, event):
+        self.game_model.question_locked = False
+        self.send_json({'type': 'success', 'payload': {
+                       'message': 'question locked'}})
 
     def game_change_question(self, event):
         if not self.game_model.question_locked:
-            self.send_json({'type': 'error', 'payload': 'Quesiton not locked when tring to change question'})
+            self.send_json(
+                {'type': 'error', 'payload': 'Question not locked when trying to change question'})
             return
-        if self.game_model.game_over:
-            self.send_json({'type': 'error', 'payload': "Game is over, can't change question"})
+        if self.game_model.archived:
+            self.send_json(
+                {'type': 'error', 'payload': "Game is over, can't change question"})
 
         self.game_model.next_question()
-        if self.game_model.current_question is None:
-            self.game_model.game_over = True
 
         async_to_sync(self.channel_layer.group_send)(
             self.game_group_name, {
@@ -92,11 +102,14 @@ class HostConsumer(GameJsonWebsocketConsumer):
             }
         )
         print(f"{self}\t{event}")
-        self.send_json({'type': 'sucsess', 'payload': 'question changed'})
+        self.send_json({'type': 'success', 'payload': 'question changed'})
 
     def game_pick_winner_loser(self, event):
         #  find some way to track the winner/loser
-        self.send_json({'type': 'sucsess', 'payload': 'winner/loser picked'})
+        winner = event["payload"]["winner_uuid"]
+        loser = event["payload"]["loser_uuid"]
+        self.game_model.update_player_score(winner, loser)
+        self.send_json({'type': 'success', 'payload': 'winner/loser picked'})
 
     def game_submit_answer(self, event):
         # update frontend
@@ -104,11 +117,12 @@ class HostConsumer(GameJsonWebsocketConsumer):
         self.send_json(event)
 
     def game_question_changed(self, event):
-        pass
+        self.send_json(event)
 
     def game_end_game(self, event):
         # archive the game
-        self.send_json({'type': 'sucsess', 'payload': 'game ended'})
+        self.game_model.end_game()
+        self.send_json({'type': 'success', 'payload': 'game ended'})
 
     def game_player_joined(self, event):
         # update the frontend
@@ -128,7 +142,8 @@ class HostConsumer(GameJsonWebsocketConsumer):
 class PlayerConsumer(GameJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.possible_commands = ['game.submit_answer', 'game.player_joined', 'game.player_leaving']
+        self.possible_commands = ['game.submit_answer',
+                                  'game.player_joined', 'game.player_leaving']
 
     def game_submit_answer(self, event):
         # update frontend
@@ -137,6 +152,10 @@ class PlayerConsumer(GameJsonWebsocketConsumer):
 
     def game_lock_question(self, event):
         # update frontend
+        print(f"{self}\t{event}")
+        self.send_json(event)
+
+    def game_unlock_question(self, event):
         print(f"{self}\t{event}")
         self.send_json(event)
 
@@ -171,5 +190,5 @@ class PlayerConsumer(GameJsonWebsocketConsumer):
         self.send_json(event)
 
     # needs to run after host as updated the question
-    def game_change_question(slef, event):
+    def game_change_question(self, event):
         pass
