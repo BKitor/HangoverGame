@@ -106,7 +106,21 @@ class GameCreateList(generics.ListAPIView):
         return Response(GameSerializer(new_game).data, status=status.HTTP_201_CREATED)
 
 
-class GamePlayerList(AbstractActiveGameClass, generics.RetrieveAPIView):
+class GameDestroyView(generics.DestroyAPIView):
+    queryset = Game.objects.all()
+    serializer = GameSerializer
+
+
+class GamePlayerDetailList(AbstractActiveGameClass, generics.RetrieveAPIView):
+    def get(self, request, **kwargs):
+        game = self.get_object()
+        p_list = []
+        for p in game.players.all():
+            p_list.append(PlayersSerializer(p).data)
+        return Response(p_list, status=status.HTTP_200_OK)
+
+
+class GamePlayerNameList(AbstractActiveGameClass, generics.RetrieveAPIView):
     def get(self, request, **kwargs):
         game = self.get_object()
         player_arr = []
@@ -247,5 +261,6 @@ class GamePickWinnerLoser(AbstractActiveGameClass, generics.GenericAPIView):
 
         question = get_object_or_404(Question, uuid=body['question'])
 
-        a = AnsweredQuestion.objects.create(game=game, winner=winner, loser=loser, question=question)
+        a = AnsweredQuestion.objects.create(
+            game=game, winner=winner, loser=loser, question=question)
         return Response(AnsweredQuestionSerializer(a).data, status=status.HTTP_202_ACCEPTED)

@@ -6,9 +6,11 @@ urlpatterns = [
     path('api/players/<pk>', views.PlayerDetailView.as_view()),
     path('api/players/<pk>/update', views.PlayerUpdateView.as_view()),
     path('api/games', views.GameCreateList.as_view()),  # url for creating games get and create  players
+    path('api/games/<pk>/delete', views.GameDestroyView.as_view()),  # url for creating games get and create  players
     path('game/<game_name>', views.GameDetailView.as_view()),
     path('game/<game_name>/end_game', views.GameArchiveView.as_view()),
     path('game/<game_name>/next_question', views.GameNextQuestion.as_view()),
-    path('game/<game_name>/players', views.GamePlayerList.as_view()),
+    path('game/<game_name>/players', views.GamePlayerNameList.as_view()),
+    path('game/<game_name>/players_detail', views.GamePlayerDetailList.as_view()),
     path('game/<game_name>/pick_winner_loser', views.GamePickWinnerLoser.as_view())
 ]
