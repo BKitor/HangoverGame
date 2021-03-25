@@ -24,7 +24,7 @@ pyflakes==2.1.1
 PyHamcrest==1.9.0
 pyOpenSSL==19.1.0
 pytz==2019.2
-PyYAML==5.1.2
+PyYAML==5.4
 service-identity==18.1.0
 six==1.13.0
 sqlparse==0.3.0
